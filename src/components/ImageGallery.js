@@ -1,11 +1,11 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Container, Row, Col, Spinner } from 'react-bootstrap';
 import ImageCard from './ImageCard';
-import FilterBar from './FilterBar';
-import ViewToggle from './ViewToggle';
+import MultiSelect from './MultiSelect';
 import { mockImages } from '../data/mockImages';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { useLazyLoading } from '../hooks/useLazyLoading';
+import ViewModeSelect from './ViewModeSelect';
 
 const IMAGES_PER_PAGE = 12;
 
@@ -14,6 +14,8 @@ const ImageGallery = () => {
   const [selectedTags, setSelectedTags] = useState([]);
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const galleryRef = useRef(null);
 
   const allTags = useMemo(() => 
     [...new Set(mockImages.flatMap(img => img.tags))],
@@ -81,18 +83,37 @@ const ImageGallery = () => {
 
   const hasMoreImages = displayedImages.length < filteredImages.length;
 
-  return (
-    <Container className="py-4">
-      <div className="d-flex mb-4">
-        <FilterBar
-          tags={allTags}
-          selectedTags={selectedTags}
-          onTagSelect={handleTagSelect}
-        />
-      </div>
+  // Save scroll position before view change
+  const handleViewChange = (newView) => {
+    setScrollPosition(window.pageYOffset);
+    setViewMode(newView);
+  };
 
-      <div className="d-flex mb-4">
-        <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+  // Restore scroll position after view change
+  useEffect(() => {
+    if (scrollPosition > 0) {
+      window.scrollTo(0, scrollPosition);
+    }
+  }, [viewMode, scrollPosition]);
+
+  return (
+    <Container className="py-4" ref={galleryRef}>
+      <div className="d-flex flex-column flex-md-row gap-4 mb-4">
+        <div className="flex-grow-1">
+          <MultiSelect
+            options={allTags}
+            selected={selectedTags}
+            onChange={setSelectedTags}
+            label="Filter by Tags"
+          />
+        </div>
+        <div style={{ minWidth: '200px' }}>
+          <ViewModeSelect
+            viewMode={viewMode}
+            onChange={handleViewChange}
+            label="View Mode"
+          />
+        </div>
       </div>
       
       <Row xs={1} md={viewMode === 'grid' ? 3 : 1} className="g-4">

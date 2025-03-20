@@ -11,3 +11,17 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.custom-select {
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.custom-select option {
+  padding: 8px;
+}
+
+.custom-select option:checked {
+  background-color: #0d6efd;
+  color: white;
+}
