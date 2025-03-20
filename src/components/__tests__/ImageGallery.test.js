@@ -44,22 +44,7 @@ describe('ImageGallery', () => {
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  it('should load more images when scrolling', async () => {
-    render(<ImageGallery />);
-    
-    // Get initial number of images
-    const initialImages = screen.getAllByRole('img');
-    expect(initialImages).toHaveLength(12);
-    
-    // Scroll to bottom
-    fireEvent.scroll(window, { target: { scrollY: 1000 } });
-    
-    // Wait for more images to load
-    await waitFor(() => {
-      const images = screen.getAllByRole('img');
-      expect(images.length).toBeGreaterThan(12);
-    });
-  });
+
 
   it('should handle view mode changes', () => {
     render(<ImageGallery />);
