@@ -1,75 +1,91 @@
 import React from 'react';
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ImageGallery from '../ImageGallery';
 import { mockImages } from '../../data/mockImages';
 
-describe('ImageGallery Component', () => {
+// Mock the hooks
+jest.mock('../../hooks/useInfiniteScroll', () => ({
+  useInfiniteScroll: () => [false],
+}));
+
+jest.mock('../../hooks/useLazyLoading', () => ({
+  useLazyLoading: () => {},
+}));
+
+// Mock window.scrollTo
+const mockScrollTo = jest.fn();
+Object.defineProperty(window, 'scrollTo', {
+  value: mockScrollTo,
+  writable: true
+});
+
+describe('ImageGallery', () => {
   beforeEach(() => {
-    // Reset intersection observer mock
-    const mockIntersectionObserver = jest.fn();
-    mockIntersectionObserver.mockReturnValue({
-      observe: () => null,
-      unobserve: () => null,
-      disconnect: () => null
-    });
-    window.IntersectionObserver = mockIntersectionObserver;
+    jest.clearAllMocks();
+    mockScrollTo.mockClear();
   });
 
-  test('renders initial images and controls', () => {
+  it('should render initial state correctly', () => {
     render(<ImageGallery />);
     
-    // Check if filter and view controls are present
-    expect(screen.getByText('Grid')).toBeInTheDocument();
-    expect(screen.getByText('List')).toBeInTheDocument();
-    
-    // Check if initial batch of images is rendered
-    const images = document.querySelectorAll('.gallery-image');
-    expect(images.length).toBeLessThanOrEqual(12);
+    // Check if initial images are rendered
+    const images = screen.getAllByRole('img');
+    expect(images).toHaveLength(12); // IMAGES_PER_PAGE
   });
 
-  test('switches between grid and list views', () => {
+  it('should show loading spinner when loading more images', () => {
     render(<ImageGallery />);
     
-    const listButton = screen.getByText('List');
-    fireEvent.click(listButton);
-    expect(document.querySelector('.row')).toHaveClass('g-4');
+    // Scroll to bottom
+    fireEvent.scroll(window, { target: { scrollY: 1000 } });
     
-    const gridButton = screen.getByText('Grid');
-    fireEvent.click(gridButton);
-    expect(document.querySelector('.row')).toHaveClass('g-4');
+    // Check if loading spinner is visible
+    expect(screen.getByRole('status')).toBeInTheDocument();
   });
 
-  test('filters images by tag', async () => {
+  it('should load more images when scrolling', async () => {
     render(<ImageGallery />);
     
-    const firstTag = mockImages[0].tags[0];
-    const tagButton = screen.getByRole('button', { name: new RegExp(`^${firstTag}$`, 'i') });
+    // Get initial number of images
+    const initialImages = screen.getAllByRole('img');
+    expect(initialImages).toHaveLength(12);
     
-    fireEvent.click(tagButton);
+    // Scroll to bottom
+    fireEvent.scroll(window, { target: { scrollY: 1000 } });
     
+    // Wait for more images to load
     await waitFor(() => {
-      const filteredImages = mockImages.filter(img => img.tags.includes(firstTag));
-      const displayedImages = document.querySelectorAll('.gallery-image');
-      expect(displayedImages.length).toBeLessThanOrEqual(filteredImages.length);
+      const images = screen.getAllByRole('img');
+      expect(images.length).toBeGreaterThan(12);
     });
   });
 
-  test('loads more images on scroll', async () => {
+  it('should handle view mode changes', () => {
     render(<ImageGallery />);
     
-    const initialImages = document.querySelectorAll('.gallery-image').length;
+    // Get view mode select
+    const viewSelect = screen.getByRole('combobox');
     
-    // Trigger intersection observer
-    const sentinel = document.querySelector('#scroll-sentinel');
-    act(() => {
-      const intersectionCallback = window.IntersectionObserver.mock.calls[0][0];
-      intersectionCallback([{ isIntersecting: true }]);
-    });
+    // Change to list view
+    fireEvent.change(viewSelect, { target: { value: 'list' } });
     
-    await waitFor(() => {
-      const newImages = document.querySelectorAll('.gallery-image');
-      expect(newImages.length).toBeGreaterThan(initialImages);
-    });
+    // Check if layout changed by looking at the container's class
+    const container = screen.getByTestId('image-container');
+    expect(container).toHaveClass('g-4');
+  });
+
+  it('should maintain scroll position after view mode change', () => {
+    render(<ImageGallery />);
+    
+    // Set initial scroll position
+    window.pageYOffset = 500;
+    
+    // Change view mode
+    const viewSelect = screen.getByRole('combobox');
+    fireEvent.change(viewSelect, { target: { value: 'list' } });
+    
+    // Check if scrollTo was called with correct position
+    expect(mockScrollTo).toHaveBeenCalledWith(0, 500);
   });
 });

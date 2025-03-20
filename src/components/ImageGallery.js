@@ -116,7 +116,7 @@ const ImageGallery = () => {
         </div>
       </div>
       
-      <Row xs={1} md={viewMode === 'grid' ? 3 : 1} className="g-4">
+      <Row xs={1} md={viewMode === 'grid' ? 3 : 1} className="g-4" data-testid="image-container">
         {displayedImages.map(image => (
           <Col key={image.id}>
             <ImageCard image={image} viewMode={viewMode} />
