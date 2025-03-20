@@ -6,6 +6,7 @@ import { mockImages } from '../data/mockImages';
 import { useInfiniteScroll } from '../hooks/useInfiniteScroll';
 import { useLazyLoading } from '../hooks/useLazyLoading';
 import ViewModeSelect from './ViewModeSelect';
+import '../styles/animations.css';
 
 const IMAGES_PER_PAGE = 12;
 
@@ -98,7 +99,7 @@ const ImageGallery = () => {
 
   return (
     <Container className="py-4" ref={galleryRef}>
-      <div className="d-flex flex-column flex-md-row gap-4 mb-4">
+      <div className="d-flex flex-column flex-md-row gap-4 mb-4 fade-in">
         <div className="flex-grow-1">
           <MultiSelect
             options={allTags}
@@ -116,23 +117,35 @@ const ImageGallery = () => {
         </div>
       </div>
       
-      <Row xs={1} md={viewMode === 'grid' ? 3 : 1} className="g-4" data-testid="image-container">
+      <Row 
+        xs={1} 
+        md={viewMode === 'grid' ? 3 : 1} 
+        className="g-4"
+        data-testid="image-container"
+      >
         {displayedImages.map(image => (
           <Col key={image.id}>
-            <ImageCard image={image} viewMode={viewMode} />
+            <div className="fade-in"
+              style={{
+                animationDelay: `${(displayedImages.indexOf(image) % 12) * 0.1}s`
+              }}
+            >
+              <ImageCard image={image} viewMode={viewMode} />
+            </div>
           </Col>
         ))}
       </Row>
-
+      
       {hasMoreImages && (
         <div 
           id="scroll-sentinel" 
-          className="d-flex justify-content-center py-4"
-          style={{ minHeight: '100px', marginTop: '20px' }}
+          className="d-flex justify-content-center py-4 fade-in"
         >
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
+          <div className="loading-spinner">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
         </div>
       )}
     </Container>

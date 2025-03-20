@@ -1,0 +1,84 @@
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+  opacity: 1;
+}
+
+.image-card {
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+
+.image-card.loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.view-transition {
+  transition: all 0.3s ease-in-out;
+}
+
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Responsive Grid Animations */
+.grid-container {
+  display: grid;
+  gap: 1rem;
+  transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Layout styles */
+.row {
+  transition: all 0.3s ease-in-out;
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-in;
+}
+
+/* List view specific styles */
+[class*='col-'] {
+  transition: all 0.3s ease-in-out;
+}
+
+/* Grid view specific styles */
+@media (min-width: 768px) {
+  .row.g-4 > [class*='col-'] {
+    padding: 1rem;
+  }
+}

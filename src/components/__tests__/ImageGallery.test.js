@@ -55,9 +55,10 @@ describe('ImageGallery', () => {
     // Change to list view
     fireEvent.change(viewSelect, { target: { value: 'list' } });
     
-    // Check if layout changed by looking at the container's class
+    // Check if layout changed
     const container = screen.getByTestId('image-container');
     expect(container).toHaveClass('g-4');
+    expect(container).toHaveClass('row');
   });
 
   it('should maintain scroll position after view mode change', () => {
