@@ -20,10 +20,15 @@ Object.defineProperty(window, 'scrollTo', {
   writable: true
 });
 
+// Mock console.error
+const mockConsoleError = jest.fn();
+console.error = mockConsoleError;
+
 describe('ImageGallery', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockScrollTo.mockClear();
+    mockConsoleError.mockClear();
   });
 
   it('should render initial state correctly', () => {
@@ -43,8 +48,6 @@ describe('ImageGallery', () => {
     // Check if loading spinner is visible
     expect(screen.getByRole('status')).toBeInTheDocument();
   });
-
-
 
   it('should handle view mode changes', () => {
     render(<ImageGallery />);
