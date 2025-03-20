@@ -87,6 +87,7 @@ describe('useInfiniteScroll', () => {
     expect(mockCallback).toHaveBeenCalled();
   });
 
+
   it('should cleanup observer on unmount', () => {
     const { unmount } = renderHook(() => useInfiniteScroll(mockCallback));
     
@@ -116,6 +117,65 @@ describe('useInfiniteScroll', () => {
     
     renderHook(() => useInfiniteScroll(mockCallback));
 
+    expect(mockObserve).not.toHaveBeenCalled();
+  });
+
+  it('should handle non-intersecting sentinel', async () => {
+    renderHook(() => useInfiniteScroll(mockCallback));
+
+    // Get the callback function that was passed to IntersectionObserver
+    const [[callback]] = window.IntersectionObserver.mock.calls;
+    
+    // Simulate non-intersecting sentinel
+    await act(async () => {
+      callback([
+        {
+          isIntersecting: false,
+          target: mockSentinel
+        }
+      ]);
+    });
+
+    expect(mockCallback).not.toHaveBeenCalled();
+  });
+
+  it('should handle multiple intersection entries', async () => {
+    renderHook(() => useInfiniteScroll(mockCallback));
+
+    // Get the callback function that was passed to IntersectionObserver
+    const [[callback]] = window.IntersectionObserver.mock.calls;
+    
+    // Simulate multiple entries
+    await act(async () => {
+      callback([
+        {
+          isIntersecting: false,
+          target: mockSentinel
+        },
+        {
+          isIntersecting: true,
+          target: mockSentinel
+        }
+      ]);
+    });
+
+    // Wait for the callback to be resolved
+    await act(async () => {
+      await mockCallback();
+    });
+
+    expect(mockCallback).toHaveBeenCalled();
+  });
+
+  it('should handle undefined sentinel', async () => {
+    document.querySelector.mockReturnValue(undefined);
+    renderHook(() => useInfiniteScroll(mockCallback));
+    expect(mockObserve).not.toHaveBeenCalled();
+  });
+
+  it('should handle null sentinel', async () => {
+    document.querySelector.mockReturnValue(null);
+    renderHook(() => useInfiniteScroll(mockCallback));
     expect(mockObserve).not.toHaveBeenCalled();
   });
 }); 
